@@ -12,8 +12,8 @@ public class Compressor {
     private Bitmap.CompressFormat compressFormat = Bitmap.CompressFormat.JPEG;
     private int quality = 80;
     private byte[] data;
-    private int reqWidth = 1024;
-    private int reqHeight = 768;
+    private int reqWidth = 612;
+    private int reqHeight = 816;
 
     public Compressor(byte[] data) {
       this.data = data;
