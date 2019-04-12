@@ -18,14 +18,15 @@ class ImageUtil {
 
 	private static final String TAG = "ImageUtil";
 
-	public static File apply(File file, int maxWidth, int maxHeight, int quality, Bitmap.CompressFormat format) {
+	public static File apply(File file, int quality, Bitmap.CompressFormat format) {
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
 		Bitmap bmp = BitmapFactory.decodeFile(file.getPath(), options);
 
-		int actualHeight = options.outHeight;
+    int actualHeight = options.outHeight;
 		int actualWidth = options.outWidth;
-
+		float maxHeight = 816.0f;
+		float maxWidth = 612.0f;
 		float imgRatio = actualWidth / actualHeight;
 		float maxRatio = maxWidth / maxHeight;
 
@@ -110,7 +111,7 @@ class ImageUtil {
 		}
 	}
 
-	private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+ private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
     final int height = options.outHeight;
     final int width = options.outWidth;
     int inSampleSize = 1;
