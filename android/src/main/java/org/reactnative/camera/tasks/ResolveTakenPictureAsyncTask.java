@@ -63,14 +63,6 @@ public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, Writable
 
                 Compressor resize = new Compressor(mImageData);
 
-                if (mOptions.hasKey("width")) {
-                    resize.setWith(mOptions.getInt("width"));
-                }
-
-                if (mOptions.hasKey("height")) {
-                    resize.setHeight(mOptions.getInt("height"));
-                }
-
                 if (mOptions.hasKey("quality")) {
                     resize.setQuality(getQuality());
                 }
