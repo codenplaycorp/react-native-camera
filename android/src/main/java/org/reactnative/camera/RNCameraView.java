@@ -13,7 +13,6 @@ import android.os.AsyncTask;
 import com.facebook.react.bridge.*;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.google.android.cameraview.CameraView;
-import com.google.android.gms.vision.barcode.Barcode;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
@@ -62,8 +61,9 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
   private int mFaceDetectorMode = RNFaceDetector.FAST_MODE;
   private int mFaceDetectionLandmarks = RNFaceDetector.NO_LANDMARKS;
   private int mFaceDetectionClassifications = RNFaceDetector.NO_CLASSIFICATIONS;
-  private int mGoogleVisionBarCodeType = Barcode.ALL_FORMATS;
+  private int mGoogleVisionBarCodeType = RNBarcodeDetector.ALL_FORMATS;
   private int mGoogleVisionBarCodeMode = RNBarcodeDetector.NORMAL_MODE;
+  private boolean mTrackingEnabled = true;
   private int mPaddingX;
   private int mPaddingY;
 
@@ -339,7 +339,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
     mFaceDetector.setMode(mFaceDetectorMode);
     mFaceDetector.setLandmarkType(mFaceDetectionLandmarks);
     mFaceDetector.setClassificationType(mFaceDetectionClassifications);
-    mFaceDetector.setTracking(true);
+    mFaceDetector.setTracking(mTrackingEnabled);
   }
 
   public void setFaceDetectionLandmarks(int landmarks) {
@@ -360,6 +360,13 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
     mFaceDetectorMode = mode;
     if (mFaceDetector != null) {
       mFaceDetector.setMode(mode);
+    }
+  }
+
+  public void setTracking(boolean trackingEnabled) {
+    mTrackingEnabled = trackingEnabled;
+    if (mFaceDetector != null) {
+      mFaceDetector.setTracking(trackingEnabled);
     }
   }
 

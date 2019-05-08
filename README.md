@@ -130,10 +130,6 @@ See this [doc](./docs/migrationV2.md)
 
 [RNCamera](./docs/RNCamera.md)
 
-### Docs old RCTCamera
-
-[RCTCamera](./docs/RCTCamera.md)
-
 ## Getting started
 
 ### Requirements
@@ -225,38 +221,13 @@ end
 5. In XCode, in the project navigator, select your project. Add `libRNCamera.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
 6. Click `RNCamera.xcodeproj` in the project navigator and go the `Build Settings` tab. Make sure 'All' is toggled on (instead of 'Basic'). In the `Search Paths` section, look for `Header Search Paths` and make sure it contains both `$(SRCROOT)/../../react-native/React` and `$(SRCROOT)/../../../React` - mark both as `recursive`.
 
-### Face Detection or Text Recognition Steps
+##### Face Detection/Text Recognition/BarCode(using MLKit) Steps
 
-Face Detection/Text Recognition are optional on iOS. If you want them, you are going to need to install Google Mobile Vision frameworks in your project, as mentioned in the next section.
+Face Detection/Text Recognition/BarCode(using MLKit) are optional on iOS. If you want them, you will need to use CocoaPods path and set-up Firebase project for your app (detailed steps below).
 
-##### No Face Detection steps
+_Note:_ Installing react-native-firebase package is NOT necessary.
 
-If you do not need it and do not want to install the GMV frameworks, open your app xcode project, on the Project Navigator, expand the RNCamera project, right click on the FaceDetector folder and delete it (move to trash, if you want). If you keep that folder and do not follow the GMV installation steps, your project will not compile.
-
-If you want to make this automatic, you can add a postinstall script to your app `package.json`. Inside the `postinstall_project` there is a xcode project ready with the folder removed (we opened xcode, removed the folder from the project and copied the resulting project file). The post install script is:
-
-```
-#!/bin/bash
-echo "Creating project without FaceDetector"
-if [ -e node_modules/react-native-camera/ios/FaceDetector ] ; then
-  rm -rf node_modules/react-native-camera/ios/FaceDetector
-fi
-cp node_modules/react-native-camera/postinstall_project/projectWithoutFaceDetection.pbxproj node_modules/react-native-camera/ios/RNCamera.xcodeproj/project.pbxproj
-```
-
-And add something like this to the `scripts` section in your `package.json`:
-
-_Note:_ The face detection/text recognition code is excluded by default for the **CocoaPods** installation.
-
-```
-"postinstall": "./scripts/post.sh",
-```
-
-##### Installing GMV frameworks
-
-GMV (Google Mobile Vision) is used for Face detection/Text recognition by the iOS RNCamera. You have to link the google frameworks to your project to successfully compile the RNCamera project.
-
-###### CocoaPods Path (The only option for Text Recognition)
+###### Modifying Podfile
 
 Modify the dependency towards `react-native-camera` in your
 `Podfile`, from
@@ -269,7 +240,7 @@ to (for Face Detection)
 
 ```
 pod 'react-native-camera', path: '../node_modules/react-native-camera', subspecs: [
-  'FaceDetector'
+  'FaceDetectorMLKit'
 ]
 ```
 
@@ -281,9 +252,27 @@ pod 'react-native-camera', path: '../node_modules/react-native-camera', subspecs
 ]
 ```
 
-###### Additional steps for Text Recognition
+or to (for Barcode Recognition)
 
-Text recognition for iOS uses Firebase MLKit which requires setting up Firebase project for your app.
+```
+pod 'react-native-camera', path: '../node_modules/react-native-camera', subspecs: [
+  'BarcodeDetectorMLKit'
+]
+```
+
+or to (all possible detections)
+
+```
+pod 'react-native-camera', path: '../node_modules/react-native-camera', subspecs: [
+  'TextDetector',
+  'FaceDetectorMLKit',
+  'BarcodeDetectorMLKit'
+]
+```
+
+###### Setting up Firebase
+
+Text/Face recognition for iOS uses Firebase MLKit which requires setting up Firebase project for your app.
 If you have not already added Firebase to your app, please follow the steps described in [getting started guide](https://firebase.google.com/docs/ios/setup).
 In short, you would need to
 
@@ -303,31 +292,8 @@ In short, you would need to
 }
 ```
 
-_Note:_ Text recognition is currently available only via CocoaPods Path.
-
 - If you have issues with duplicate symbols you will need to enable dead code stripping option in your Xcode (Target > Build Settings > search for "Dead code stripping") [see here](https://github.com/firebase/quickstart-ios/issues/487#issuecomment-415313053).
 - If you are using `pod Firebase/Core` with a version set below 5.13 you might want to add `pod 'GoogleAppMeasurement', '~> 5.3.0'` to your podfile
-
-###### Non-CocoaPods Path
-
-1.  Download:
-    Google Symbol Utilities: https://www.gstatic.com/cpdc/dbffca986f6337f8-GoogleSymbolUtilities-1.1.1.tar.gz
-
-        Google Utilities: https://dl.google.com/dl/cpdc/978f81964b50a7c0/GoogleUtilities-1.3.2.tar.gz
-
-        Google Mobile Vision: https://dl.google.com/dl/cpdc/df83c97cbca53eaf/GoogleMobileVision-1.1.0.tar.gz
-
-        Google network Utilities: https://dl.google.com/dl/cpdc/54fd7b7ef8fd3edc/GoogleNetworkingUtilities-1.2.2.tar.gz
-
-        Google Interchange Utilities: https://dl.google.com/dl/cpdc/1a7f7ba905b2c029/GoogleInterchangeUtilities-1.2.2.tar.gz
-
-2.  Extract everything to one folder. Delete "BarcodeDetector" and "copy" folders from Google Mobile Vision.
-
-3.  Open XCode, right click on your project and choose "New Group". Rename the new folder to "Frameworks". Right click on "Frameworks" and select "add files to 'YOUR_PROJECT'". Select all content from the folder of step 2, click on Options. Select "Copy items if needed", leave "Create groups" selected and choose all your targets on the "Add to targets" section. Then, click on "Add".
-
-4.  On your target -> Build Phases -> Link Binary with Libraries -> add AddressBook.framework
-5.  On your target -> Build Settings -> Other Linker Flags -> add -lz, -ObjC and -lc++
-6.  To force indexing and prevent errors, restart xcode and reopen your project again before compiling.
 
 #### Android
 
@@ -416,7 +382,7 @@ allprojects {
    - add to the bottom of `android/app/build.gradle` file
 
    ```gradle
-   apply plugin: com.google.gms.google-services'
+   apply plugin: 'com.google.gms.google-services'
    ```
 
    7.2. Configure your app to automatically download the ML model to the device after your app is installed from the Play Store. If you do not enable install-time model downloads, the model will be downloaded the first time you run the on-device detector. Requests you make before the download has completed will produce no results.
@@ -481,19 +447,19 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.0.1'
+    classpath 'com.android.tools.build:gradle:3.3.1'
   }
 }
 
 apply plugin: 'com.android.library'
 
 android {
-  compileSdkVersion safeExtGet('compileSdkVersion', 26)
-  buildToolsVersion safeExtGet('buildToolsVersion', '26.0.2')
+  compileSdkVersion safeExtGet('compileSdkVersion', 28)
+  buildToolsVersion safeExtGet('buildToolsVersion', '28.0.3')
 
   defaultConfig {
     minSdkVersion safeExtGet('minSdkVersion', 16)
-    targetSdkVersion safeExtGet('targetSdkVersion', 26)
+    targetSdkVersion safeExtGet('targetSdkVersion', 28)
   }
 
   flavorDimensions "react-native-camera"
@@ -527,7 +493,7 @@ android {
 
 repositories {
   google()
-  mavenCentral()
+  jcenter()
   maven {
    url 'https://maven.google.com'
   }
@@ -539,16 +505,17 @@ repositories {
 }
 
 dependencies {
-  compileOnly 'com.facebook.react:react-native:+'
-  compileOnly 'com.facebook.infer.annotation:infer-annotation:+'
-  implementation "com.google.zxing:core:3.3.0"
-  implementation "com.drewnoakes:metadata-extractor:2.9.1"
-  generalImplementation "com.google.android.gms:play-services-vision:${safeExtGet('google-services', '17.0.2')}"
-  implementation "com.android.support:exifinterface:${safeExtGet('supportLibVersion', '27.1.0')}"
-  implementation "com.android.support:support-annotations:${safeExtGet('supportLibVersion', '27.1.0')}"
-  implementation "com.android.support:support-v4:${safeExtGet('supportLibVersion', '27.1.0')}"
-  mlkitImplementation "com.google.firebase:firebase-ml-vision:${safeExtGet('firebase-ml-vision', '18.0.2')}"
-  mlkitImplementation "com.google.firebase:firebase-ml-vision-face-model:17.0.2"
+  def googlePlayServicesVisionVersion = safeExtGet('googlePlayServicesVisionVersion', safeExtGet('googlePlayServicesVersion', '17.0.2'))
+
+  implementation 'com.facebook.react:react-native:+'
+  implementation "com.google.zxing:core:3.3.3"
+  implementation "com.drewnoakes:metadata-extractor:2.11.0"
+  generalImplementation "com.google.android.gms:play-services-vision:$googlePlayServicesVisionVersion"
+  implementation "com.android.support:exifinterface:${safeExtGet('supportLibVersion', '28.0.0')}"
+  implementation "com.android.support:support-annotations:${safeExtGet('supportLibVersion', '28.0.0')}"
+  implementation "com.android.support:support-v4:${safeExtGet('supportLibVersion', '28.0.0')}"
+  mlkitImplementation "com.google.firebase:firebase-ml-vision:${safeExtGet('firebase-ml-vision', '19.0.3')}"
+  mlkitImplementation "com.google.firebase:firebase-ml-vision-face-model:${safeExtGet('firebase-ml-vision-face-model', '17.0.2')}"
 }
 ```
 
@@ -584,11 +551,3 @@ Follow the [Q & A](./docs/QA.md) section if you are having compilation issues.
 ### RNCamera
 
 Take a look into this [documentation](./docs/RNCamera.md).
-
-### RCTCamera
-
-Since `1.0.0`, RCTCamera is deprecated, but if you want to use it, you can see its [documentation](./docs/RCTCamera.md).
-
----
-
-Thanks to Brent Vatne (@brentvatne) for the `react-native-video` module which provided me with a great example of how to set up this module.
