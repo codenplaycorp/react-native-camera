@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import br.com.cnp.compressor.Compressor;
+
 public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, WritableMap> {
     private static final String ERROR_TAG = "E_TAKING_PICTURE_FAILED";
     private Promise mPromise;
@@ -53,6 +55,33 @@ public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, Writable
 
         response.putInt("deviceOrientation", mDeviceOrientation);
         response.putInt("pictureOrientation", mOptions.hasKey("orientation") ? mOptions.getInt("orientation") : mDeviceOrientation);
+
+        if (mOptions.hasKey("fast")) {
+            try {
+                File imageFile = new File(RNFileUtils.getOutputFilePath(mCacheDirectory, ".jpg"));
+                imageFile.createNewFile();
+
+                Compressor resize = new Compressor(mImageData);
+
+                if (mOptions.hasKey("quality")) {
+                    resize.setQuality(getQuality());
+                }
+
+                File fileScaled = resize.compressToFile(imageFile);
+                String fileUri = Uri.fromFile(fileScaled).toString();
+                String origFileUri = Uri.fromFile(imageFile).toString();
+                response.putString("uri", fileUri);
+                response.putString("original", origFileUri);
+            } catch (Resources.NotFoundException e) {
+                mPromise.reject(ERROR_TAG, "Documents directory of the app could not be found.", e);
+                e.printStackTrace();
+            } catch (IOException e) {
+                mPromise.reject(ERROR_TAG, "An unknown I/O exception has occurred.", e);
+                e.printStackTrace();
+            }
+
+            return response;
+        }
 
         if (mOptions.hasKey("skipProcessing")) {
             try {

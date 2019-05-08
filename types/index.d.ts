@@ -11,7 +11,7 @@
  * If you are seeing this from the future, please, send us your cutting-edge technology :) (if it exists)
  */
 import { Component, ReactNode } from 'react';
-import { ViewProperties } from 'react-native';
+import { NativeMethodsMixinStatic, ViewProperties, findNodeHandle } from 'react-native';
 
 type Orientation = Readonly<{
   auto: any;
@@ -133,6 +133,7 @@ export interface RNCameraProps {
   children?: ReactNode | FaCC;
 
   autoFocus?: keyof AutoFocus;
+  autoFocusPointOfInterest?: Point;
   type?: keyof CameraType;
   flashMode?: keyof FlashMode;
   notAuthorizedView?: JSX.Element;
@@ -184,12 +185,28 @@ export interface RNCameraProps {
   // -- ANDROID ONLY PROPS
   /** Android only */
   ratio?: string;
-  /** Android only */
+  /** Android only - Deprecated */
   permissionDialogTitle?: string;
-  /** Android only */
+  /** Android only - Deprecated */
   permissionDialogMessage?: string;
   /** Android only */
   playSoundOnCapture?: boolean;
+
+  androidCameraPermissionOptions?: {
+    title: string;
+    message: string;
+    buttonPositive?: string;
+    buttonNegative?: string;
+    buttonNeutral?: string;
+  };
+
+  androidRecordAudioPermissionOptions?: {
+    title: string;
+    message: string;
+    buttonPositive?: string;
+    buttonNegative?: string;
+    buttonNeutral?: string;
+  };
 
   // -- IOS ONLY PROPS
   defaultVideoQuality?: keyof VideoQuality;
@@ -379,6 +396,9 @@ interface RecordResponse {
 
 export class RNCamera extends Component<RNCameraProps & ViewProperties> {
   static Constants: Constants;
+
+  _cameraRef: null | NativeMethodsMixinStatic;
+  _cameraHandle: ReturnType<typeof findNodeHandle>;
 
   takePictureAsync(options?: TakePictureOptions): Promise<TakePictureResponse>;
   recordAsync(options?: RecordOptions): Promise<RecordResponse>;
