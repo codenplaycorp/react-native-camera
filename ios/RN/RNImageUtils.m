@@ -9,6 +9,40 @@
 
 @implementation RNImageUtils
 
++ (UIImage *)resizeImage:(UIImage *)image toQuality:(float)quality {
+    float actualHeight = image.size.height;
+    float actualWidth = image.size.width;
+    float maxHeight = 816.0;
+    float maxWidth = 612.0;
+    float imgRatio = actualWidth / actualHeight;
+    float maxRatio = maxWidth / maxHeight;
+    float compressionQuality = quality <= 0.0 ? 0.85 : quality;
+    
+    if (actualHeight > maxHeight || actualWidth > maxWidth) {
+        if (imgRatio < maxRatio) {
+            imgRatio = maxHeight / actualHeight;
+            actualWidth = imgRatio * actualWidth;
+            actualHeight = maxHeight;
+        } else if (imgRatio > maxRatio) {
+            imgRatio = maxWidth / actualWidth;
+            actualHeight = imgRatio * actualHeight;
+            actualWidth = maxWidth;
+        } else {
+            actualHeight = maxHeight;
+            actualWidth = maxWidth;
+        }
+    }
+    
+    CGRect rect = CGRectMake(0.0, 0.0, actualWidth, actualHeight);
+    UIGraphicsBeginImageContext(rect.size);
+    [image drawInRect:rect];
+    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+    NSData *imageData = UIImageJPEGRepresentation(img, compressionQuality);
+    UIGraphicsEndImageContext();
+    
+    return [UIImage imageWithData:imageData];
+}
+
 + (UIImage *)generatePhotoOfSize:(CGSize)size
 {
     CGRect rect = CGRectMake(0, 0, size.width, size.height);

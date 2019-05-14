@@ -410,7 +410,11 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
                 takenImage = [RNImageUtils forceUpOrientation:takenImage];
             }
 
-            if ([options[@"width"] integerValue]) {
+            if ([options[@"fast"] boolValue]) {
+                RCTLog(@"Using fast method");
+                takenImage = [RNImageUtils resizeImage:takenImage toQuality:[options[@"quality"] floatValue]];
+            } else if ([options[@"width"] integerValue]) {
+                RCTLog(@"Using normal method");
                 takenImage = [RNImageUtils scaleImage:takenImage toWidth:[options[@"width"] integerValue]];
             }
 
